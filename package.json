@@ -1,0 +1,50 @@
+{
+  "name": "node-red-contrib-battle.net",
+  "version": "0.1.0",
+  "description": "Battle.net Parental Control nodes for Node-RED",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "node-red": {
+    "nodes": {
+      "BattleNet": "battle/BattleNet.js",
+      "BattleCheck": "battle/BattleCheck.js",
+      "BattleSet": "battle/BattleSet.js"
+    }
+  },
+  "repository": "github:Allow2/node-red-contrib-battle.net",
+  "author": {
+    "name": "Allow2CEO",
+    "email": "ceo@allow2.com",
+    "url": "https://www.allow2.com/"
+  },
+  "contributors": [
+    {
+      "name": "Allow2CEO",
+      "email": "ceo@allow2.com",
+      "url": "https://www.allow2.com/"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://flows.nodered.org/node/node-red-contrib-battle.net",
+  "bugs": "https://github.com/Anamico/node-red-contrib-battle.net/issues",
+  "dependencies": {
+    "async": "^2.6.1",
+    "request": "^2.88.0"
+  },
+  "keywords": [
+    "battle.net",
+    "parental controls",
+    "parent controls",
+    "control",
+    "controls",
+    "allow2"
+  ],
+  "maintainers": [
+    {
+      "name": "Allow2CEO",
+      "email": "ceo@allow2.com"
+    }
+  ]
+}

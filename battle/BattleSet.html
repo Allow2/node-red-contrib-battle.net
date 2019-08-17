@@ -1,0 +1,52 @@
+<script type="text/javascript">
+    RED.nodes.registerType('BattleSet', {
+        category: 'BattleDotNet',
+        color: '#02A9F4',
+        defaults: {
+            name: { value : '' },
+            battle: { type: 'BattleNet', required: true }
+        },
+        inputs: 1,
+        outputs: 1,
+        inputLabels: 'settings',
+        outputLabels: 'result',
+        paletteLabel: 'Set',
+        icon: 'battle.png',
+        label: function() {
+            return this.name || 'Set';
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="BattleSet">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-battle"><i class="fa fa-handshake-o"></i> Battle.net</label>
+        <input type="text" id="node-input-battle" placeholder="Battle.net Account">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="BattleSet">
+    <p>Get the current settings from Battle.net.</p>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">TODO</span>
+        </dt>
+        <dt>metadata
+            <span class="property-type">todo</span>
+        </dt>
+    </dl>
+    <h3>Details</h3>
+    <p>Note: todo:
+        <ul>
+            <li>todo, or</li>
+            <li>todo</li>
+        </ul>
+        todo.
+    </p>
+</script>

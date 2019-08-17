@@ -1,0 +1,37 @@
+<script type="text/javascript">
+    RED.nodes.registerType('BattleNet',{
+        category: 'config',
+        color: '#02A9F4',
+        defaults: {
+            name: { value: "", required: true }
+        },
+        credentials: {
+            key: { type: 'password', required: true }
+        },
+        label: function() {
+            return this.name || 'Battle.net';
+        },
+        paletteLabel: 'Battle.net',
+        icon: 'battle.png',
+    });
+</script>
+
+<script type="text/x-red" data-template-name="BattleNet">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="icon-bookmark"></i> Name</label>
+        <input type="text" id="node-config-input-name">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-config-input-apikey"><i class="fa fa-lock"></i>
+        <span data-i18n="node-red:common.label.secret">Key</span></label>
+        <input type="password" id="node-config-input-key">
+    </div>
+    
+    <div class="form-tips">Tip: this is the key value from your Battle.net web page address.</div>
+</script>
+
+<script type="text/x-red" data-help-name="BattleNet">
+    <p>Battle.Net Node</p>
+    <p>Represents a connection to Battle.net.</p>
+</script>

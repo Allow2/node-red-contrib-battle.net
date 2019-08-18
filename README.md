@@ -8,7 +8,7 @@
 The [Battle.net](https://www.blizzard.com/en-us/?ref=battle.net)
 (SIEM) Node-RED package enables the development of flows in
 [Node-RED](https://nodered.org/) which use Battle.net Parental Control features (set limits, time of day).
-Designed to work with [Allow2](https://www.allow2.com/).
+Designed to work with [Allow2](https://www.allow2.com/) via [Allow2NodeRed](https://github.com/Allow2/Allow2NodeRED) nodes.
 
 ## Documentation
 

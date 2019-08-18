@@ -8,8 +8,8 @@ module.exports = function(RED) {
         node._battle = RED.nodes.getNode(config.battle);
         
         node.on('input', function(msg) {
-            node._battle.check(function(err) {
-				msg.payload = 'result';
+            node._battle.check(function(err, settings) {
+				msg.payload = settings;
             	node.send(msg);
 			});
         });

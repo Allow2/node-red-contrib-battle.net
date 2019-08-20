@@ -62,7 +62,8 @@ module.exports = function(RED) {
 				uri: 'https://us.battle.net/account/parental-controls/manage.html?key=' + key,
 			}, function (error, response, body) {
 				if (error) {
-				  	return console.error('get failed:', error);
+				  	console.error('get failed:', error);
+				  	return callback(error);
 				}
 				const $ = cheerio.load(body);
 				
@@ -117,8 +118,11 @@ module.exports = function(RED) {
 				uri: 'https://us.battle.net/account/parental-controls/manage.html',
 			}, function (error, response, body) {
 				if (error) {
-				  	return console.error('post failed:', error);
+				  	console.error('post failed:', error);
+				  	return callback(error);
 				}
+				
+				console.log(body);
 				
 				// on success, re-read and return current settings
 				const $ = cheerio.load(body);

@@ -43,6 +43,7 @@ module.exports = function(RED) {
         var node = this;
         
         const key = this.credentials.key;
+        const jar = request.jar();
         //node.nodeId = node.id.replace(/\./g, '_');
         
         node.csrfToken = null;
@@ -54,9 +55,53 @@ module.exports = function(RED) {
 // 			return callback(null);
 // 		}
 		
+		function handleResponse(response, body, callback) {
+			const $ = cheerio.load(body);
+			node.csrfToken = $("#csrftoken").val() || node.csrfToken;
+				
+			//console.log($.html(), '\n\n\n********\n\n', body);
+			// find the selected voiceChatStatus
+			const listenAndSpeak = $("#voiceChatStatus1");
+			const listenOnly = $("#voiceChatStatus2");
+			const off = $("#voiceChatStatus3");
+			const voiceChatStatus =
+				listenAndSpeak.prop('checked') ? listenAndSpeak.val():
+				listenOnly.prop('checked') ? listenOnly.val():
+				off.val();
+			
+			var settings = {
+				// defaults?
+				enableAccountMuted: $("#enableAccountMuted").prop('checked'),
+				enableRealId: $("#enableRealId").prop('checked'),
+				enableProfile: $("#enableProfile").prop('checked'),
+				enableGroups: $("#enableGroups").prop('checked'),
+				enableFriendsOfFriends: $("#enableFriendsOfFriends").prop('checked'),
+				enableForumPosting: $("#enableForumPosting").prop('checked'),
+				voiceChatStatus: voiceChatStatus,
+				timeZone: $("#timeZone").val(),
+				enableWeeklyReport: $("#enableWeeklyReport").prop('checked'),
+				dailyLimitEnabled: $("#dailyLimitEnabled").prop('checked'),
+				dailyLimit: $("#dailyLimit").val(),
+				weeklyLimitEnabled: $("#weeklyLimitEnabled").prop('checked'),
+				weeklyLimit: $("#weeklyLimit").val(),
+				scheduleEnabled: $("#scheduleEnabled").prop('checked'),
+				scheduleMonday: scheduleDecode($('#scheduleMonday').val()),
+				scheduleTuesday: scheduleDecode($('#scheduleTuesday').val()),
+				scheduleWednesday: scheduleDecode($('#scheduleWednesday').val()),
+				scheduleThursday: scheduleDecode($('#scheduleThursday').val()),
+				scheduleFriday: scheduleDecode($('#scheduleFriday').val()),
+				scheduleSaturday: scheduleDecode($('#scheduleSaturday').val()),
+				scheduleSunday: scheduleDecode($('#scheduleSunday').val()),
+				inGamePurchasesEnabled: $("#inGamePurchasesEnabled").prop('checked')
+			};
+			return callback(null, settings);
+		}
+		
+		
         node.check = function(callback) {
         	request({
         		method: 'GET',
+        		jar: jar,
 				//preambleCRLF: true,
 				//postambleCRLF: true,
 				uri: 'https://us.battle.net/account/parental-controls/manage.html?key=' + key,
@@ -65,56 +110,89 @@ module.exports = function(RED) {
 				  	console.error('get failed:', error);
 				  	return callback(error);
 				}
-				const $ = cheerio.load(body);
 				
-				node.csrfToken = $("#csrftoken").val() || node.csrfToken;
+				const statusCode = (response && response.statusCode) || 555;
+				if (statusCode !== 200) {
+					console.error('get error:', statusCode);
+				  	return callback(new Error('error ' + statusCode));
+				}
 				
-				//console.log($.html(), '\n\n\n********\n\n', body);
-				
-				var settings = {
-					// defaults?
-					enableAccountMuted: $("#enableAccountMuted").prop('checked'),
-					enableRealId: $("#enableRealId").prop('checked'),
-					enableProfile: $("#enableProfile").prop('checked'),
-					enableGroups: $("#enableGroups").prop('checked'),
-					enableFriendsOfFriends: $("#enableFriendsOfFriends").prop('checked'),
-					enableForumPosting: $("#enableForumPosting").prop('checked'),
-					voiceChatStatus: $("#voiceChatStatus").val(),
-					timeZone: $("#timeZone").val(),
-					enableWeeklyReport: $("#enableWeeklyReport").prop('checked'),
-					dailyLimitEnabled: $("#dailyLimitEnabled").prop('checked'),
-					dailyLimit: $("#dailyLimit").val(),
-					weeklyLimitEnabled: $("#weeklyLimitEnabled").prop('checked'),
-					weeklyLimit: $("#weeklyLimit").val(),
-					scheduleEnabled: $("#scheduleEnabled").prop('checked'),
-					scheduleMonday: scheduleDecode($('#scheduleMonday').val()),
-					scheduleTuesday: scheduleDecode($('#scheduleTuesday').val()),
-					scheduleWednesday: scheduleDecode($('#scheduleWednesday').val()),
-					scheduleThursday: scheduleDecode($('#scheduleThursday').val()),
-					scheduleFriday: scheduleDecode($('#scheduleFriday').val()),
-					scheduleSaturday: scheduleDecode($('#scheduleSaturday').val()),
-					scheduleSunday: scheduleDecode($('#scheduleSunday').val()),
-					inGamePurchasesEnabled: $("#inGamePurchasesEnabled").prop('checked')
-				};
-				
-            	return callback(null, settings);
+				return handleResponse(response, body, callback);
 			});
         };
 
+
+		function _redirected(params, response, jar, callback) {
+			// const form = Object.assign({}, params, {
+//         		csrftoken: node.csrfToken,
+//         		scheduleMonday: scheduleEncode(params.scheduleMonday),
+// 				scheduleTuesday: scheduleEncode(params.scheduleTuesday),
+// 				scheduleWednesday: scheduleEncode(params.scheduleWednesday),
+// 				scheduleThursday: scheduleEncode(params.scheduleThursday),
+// 				scheduleFriday: scheduleEncode(params.scheduleFriday),
+// 				scheduleSaturday: scheduleEncode(params.scheduleSaturday),
+// 				scheduleSunday: scheduleEncode(params.scheduleSunday)
+//         	});
+//         	console.log('\n\nform":', form, '\n\n');
+        	request({
+        		method: 'GET',
+        		jar: jar,
+				uri: response.headers.location,
+			}, function (error, response, body) {
+				if (error) {
+				  	console.error('post failed:', error);
+				  	return callback(error);
+				}
+				
+				const statusCode = (response && response.statusCode) || 555;
+				if (statusCode !== 200) {
+					console.error('post error:', statusCode, response.headers);
+				  	return callback(new Error('error ' + statusCode));
+				}
+				
+				//console.log('redirect response: ', body);
+				return handleResponse(response, body, callback);
+			});
+		}
+		
+		
+		const boolParams = ['enableRealId',
+				'enableProfile',
+				'enableGroups',
+				'enableFriendsOfFriends',
+				'enableForumPosting',
+				'enableWeeklyReport',
+				'dailyLimitEnabled',
+				'weeklyLimitEnabled',
+				'scheduleEnabled',
+				'inGamePurchasesEnabled'];
+				
         node.set = function(params, callback) {
-        	const form = Object.assign({}, params, {
+        	var formData = {
         		csrftoken: node.csrfToken,
-        		scheduleMonday: scheduleEncode(params.scheduleMonday),
+				voiceChatStatus: params.voiceChatStatus,
+				timeZone: params.timeZone,
+				dailyLimit: params.dailyLimit,
+				weeklyLimit: params.weeklyLimit,
+				scheduleMonday: scheduleEncode(params.scheduleMonday),
 				scheduleTuesday: scheduleEncode(params.scheduleTuesday),
 				scheduleWednesday: scheduleEncode(params.scheduleWednesday),
 				scheduleThursday: scheduleEncode(params.scheduleThursday),
 				scheduleFriday: scheduleEncode(params.scheduleFriday),
 				scheduleSaturday: scheduleEncode(params.scheduleSaturday),
 				scheduleSunday: scheduleEncode(params.scheduleSunday)
-        	});
+			};
+			boolParams.forEach(function(bool) {
+				if (params[bool]) {
+					formData[bool] = 'on';
+				}
+			});
+        	console.log('\n\n formData:', formData, '\n\n');
+        	
         	request({
         		method: 'POST',
-        		form: form,
+        		formData: formData,
+        		jar: jar,
 				uri: 'https://us.battle.net/account/parental-controls/manage.html',
 			}, function (error, response, body) {
 				if (error) {
@@ -122,40 +200,18 @@ module.exports = function(RED) {
 				  	return callback(error);
 				}
 				
-				console.log(body);
+				const statusCode = (response && response.statusCode) || 555;
+				if (statusCode === 302) {
+					console.log('redirected:', statusCode, response.headers, jar);
+					return _redirected(params, response, jar, callback);
+				}
 				
-				// on success, re-read and return current settings
-				const $ = cheerio.load(body);
+				if (statusCode !== 200) {
+					console.error('post error:', statusCode, response.headers);
+				  	return callback(new Error('error ' + statusCode));
+				}
 				
-				console.log('\n\n** POST RESPONSE **\n\n', body);
-				
-				var settings = {
-					// defaults?
-					enableAccountMuted: $("#enableAccountMuted").prop('checked'),
-					enableRealId: $("#enableRealId").prop('checked'),
-					enableProfile: $("#enableProfile").prop('checked'),
-					enableGroups: $("#enableGroups").prop('checked'),
-					enableFriendsOfFriends: $("#enableFriendsOfFriends").prop('checked'),
-					enableForumPosting: $("#enableForumPosting").prop('checked'),
-					voiceChatStatus: $("#voiceChatStatus").val(),
-					timeZone: $("#timeZone").val(),
-					enableWeeklyReport: $("#enableWeeklyReport").prop('checked'),
-					dailyLimitEnabled: $("#dailyLimitEnabled").prop('checked'),
-					dailyLimit: $("#dailyLimit").val(),
-					weeklyLimitEnabled: $("#weeklyLimitEnabled").prop('checked'),
-					weeklyLimit: $("#weeklyLimit").val(),
-					scheduleEnabled: $("#scheduleEnabled").prop('checked'),
-					scheduleMonday: scheduleDecode($('#scheduleMonday').val()),
-					scheduleTuesday: scheduleDecode($('#scheduleTuesday').val()),
-					scheduleWednesday: scheduleDecode($('#scheduleWednesday').val()),
-					scheduleThursday: scheduleDecode($('#scheduleThursday').val()),
-					scheduleFriday: scheduleDecode($('#scheduleFriday').val()),
-					scheduleSaturday: scheduleDecode($('#scheduleSaturday').val()),
-					scheduleSunday: scheduleDecode($('#scheduleSunday').val()),
-					inGamePurchasesEnabled: $("#inGamePurchasesEnabled").prop('checked')
-				};
-				
-            	return callback(null, settings);
+				return handleResponse(response, body, callback);
 			});
         };
 

@@ -8,7 +8,7 @@ module.exports = function(RED) {
         node._battle = RED.nodes.getNode(config.battle);
 
         node.on('input', function(msg) {
-			node.status({ fill:   'blue', shape:  'dot', text:   'updating...' });
+			node.status({ fill: 'blue', shape: 'dot', text: 'updating...' });
 			node._battle.set(msg.payload, function(err, settings) {
 				if (err) {
 					return node.status({ fill: 'red', shape: 'dot', text: err.message });
